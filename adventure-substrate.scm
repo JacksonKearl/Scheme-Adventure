@@ -237,6 +237,13 @@
 (define (random-number n)
   (n:+ (random n) 1))
 
+; returns an integer with over the given weighted distribution:
+; i.e. (5 4 1) would return 0 with probability 50%, 1 with 40%, etc.
+; I don't know if this is mathematically sound, but it looks pretty clean.
+(define (weighted-random args)
+      (if (< (random (apply + args)) (car args))
+        0 (+ 1 (weighted-random (cdr args)))))
+
 (define (bias? object)
   (and (n:real? object)
        (n:<= 0 object 1)))

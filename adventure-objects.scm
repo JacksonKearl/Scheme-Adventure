@@ -180,7 +180,7 @@
 (define person:health
   (make-property 'health
                  'predicate n:exact-integer?
-                 'default-value 3))
+                 'default-supplier (lambda () (+ 7 (weighted-random '(1 2 3 4 3 2 1))))))
 
 (define person:bag
   (make-property 'bag
@@ -213,6 +213,7 @@
   (match-args person?)
   (lambda (super person)
     (super person)
+    (walk-it-off! person)
     (narrate! (list person "enters" (get-location person))
               person)
     (let ((people (people-here person)))
@@ -223,7 +224,10 @@
   (lambda (person)
     (if (n:> (get-health person) 0)
         (callback person))))
-
+
+(define (walk-it-off! person)
+  (heal! (weighted-random '(6 2 1)) person))
+
 (define (people-here person)
   (delv person (people-in-place (get-location person))))
 
@@ -238,6 +242,12 @@
 
 (define (peoples-things person)
   (append-map get-things (people-here person)))
+
+(define (heal! points person)
+  (guarantee n:exact-nonnegative-integer? points)
+  (if (> points 5)
+    (say! person (list "I feel exceptionally well-rested!")))
+  (set-health! person (+ (get-health person) points)))
 
 (define (suffer! hits person)
   (guarantee n:exact-positive-integer? hits)
@@ -259,7 +269,7 @@
   (guarantee n:exact-positive-integer? health)
   (set-health! person health)
   (move! person (get-origin person) person))
-
+
 ;;; Bags
 
 (define bag:holder
@@ -406,10 +416,13 @@
   (if (flip-coin (get-hunger troll))
       (let ((people (people-here troll)))
         (if (n:pair? people)
-            (let ((victim (random-choice people)))
-              (narrate! (list troll "takes a bite out of" victim)
-                        troll)
-              (suffer! (random-number 3) victim))
+            (let ((victim (random-choice people))
+                  (bite   (weighted-random '(0 0 1 1 2 2 4 4 6 6 8 8 6 6))))
+              (case bite
+                ((2 3 4 5) (narrate! (list troll "takes an itty-bitty biterino out of" victim) troll))
+                ((6 7 8 9) (narrate! (list troll "takes a concerningly consumptuous bite out of" victim) troll))
+                (else      (narrate! (list troll "takes a significantly sizeable bite out of" victim) troll)))
+              (suffer! bite victim))
             (narrate! (list (possessive troll) "belly rumbles")
                       troll)))))
 
@@ -446,6 +459,8 @@
 (define (look-around avatar)
   (tell! (list "You are in" (get-location avatar))
          avatar)
+  (tell! (list "You have" (get-health avatar) "health")
+        avatar)
   (let ((my-things (get-things avatar)))
     (if (n:pair? my-things)
         (tell! (cons "Your bag contains:" my-things)

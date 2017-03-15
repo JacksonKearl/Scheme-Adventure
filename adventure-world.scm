@@ -77,7 +77,10 @@
 (define (hang-out ticks)
   (do ((i 0 (n:+ i 1)))
       ((not (n:< i ticks)))
-    (tick! (get-clock)))
+      (heal! (weighted-random '(2 7 3 2 1 1)) my-avatar)
+      (tick! (get-clock))
+      (announce! '("A day passes...")))
+  (say! my-avatar '("That was relaxing."))
   unspecific)
 
 ;;; Support for UI
