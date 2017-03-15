@@ -216,6 +216,8 @@
     (walk-it-off! person)
     (narrate! (list person "enters" (get-location person))
               person)
+    (if (equal? 'mit-medical (get-name (get-location person)))
+      (heal! (+ 5 (weighted-random '(1 2 3 2 1))) person))
     (let ((people (people-here person)))
       (if (n:pair? people)
           (say! person (cons "Hi" people))))))
@@ -245,9 +247,12 @@
 
 (define (heal! points person)
   (guarantee n:exact-nonnegative-integer? points)
-  (if (> points 5)
+  (if (> points 4)
     (say! person (list "I feel exceptionally well-rested!")))
-  (set-health! person (+ (get-health person) points)))
+
+  (if (> (+ (get-health person) points) 15)
+    (set-health! person 15)
+    (set-health! person (+ (get-health person) points))))
 
 (define (suffer! hits person)
   (guarantee n:exact-positive-integer? hits)

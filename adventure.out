@@ -22,3 +22,26 @@ You have 15 health
 You see here: ben-bitdiddle
 You can exit: east
 ;Unspecified return value
+
+
+Part 2:
+
+1 ]=> (start-adventure 'jackson)
+
+You are in green-building
+You have 11 health
+You can see: mit-medical the-dot great-court little-dome great-dome dreyfoos-tower gates-tower
+You can exit: skew south down west
+;Unspecified return value
+
+1 ]=> (go 'skew)
+
+jackson leaves via the skew exit
+jackson enters mit-medical
+jackson says: I feel exceptionally well-rested!
+jackson says: Hi course-6-frosh
+You are in mit-medical
+You have 15 health
+You see here: course-6-frosh
+You can exit: skew west
+;Unspecified return value

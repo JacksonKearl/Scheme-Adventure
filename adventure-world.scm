@@ -143,7 +143,8 @@
         (great-court (create-place 'great-court))
         (bldg-54 (create-place 'green-building))
         (the-dot (create-place 'the-dot))
-        (dorm-row (create-place 'dorm-row)))
+        (dorm-row (create-place 'dorm-row))
+        (E25 (create-place 'mit-medical)))
 
     (can-go-both-ways lobby-10 'up 'down 10-250)
     (can-go-both-ways 10-250 'up 'down barker-library)
@@ -164,6 +165,8 @@
     (can-go-both-ways student-street 'in 'out 32-123)
     (can-go-both-ways student-street 'up 'down 32G)
     (can-go-both-ways student-street 'skew 'down 32D)
+    (can-go-both-ways 32G 'east 'west E25)
+    (can-go-both-ways bldg-54 'skew 'skew E25)
 
     ; Add line-of-sight into the mix
     (can-see bldg-54 32G)
@@ -172,6 +175,7 @@
     (can-see bldg-54 little-dome)
     (can-see bldg-54 great-court)
     (can-see bldg-54 the-dot)
+    (can-see bldg-54 E25)
     (can-see lobby-10 great-court)
     (can-see great-dome great-court)
     (can-see-both-ways 32D 32G)
@@ -195,7 +199,7 @@
           infinite bldg-26 cp32
           tunnel 32-123 32D 32G
           student-street bldg-54 the-dot
-          dorm-row)))
+          dorm-row E25)))
 
 (define (create-people places)
   (append (create-students places)
