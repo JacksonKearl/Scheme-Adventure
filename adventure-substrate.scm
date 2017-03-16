@@ -316,9 +316,15 @@
   (if debug-output
       (send-message! message debug-output)))
 
+(define (think! person message)
+  (send-message! (append '("A thought pops into your head: ") message) person)
+  (if debug-output
+      (send-message! (append '("A thought pops into your head: ") message) debug-output)))
+
 (define (say! person message)
-  (narrate! (append (list person "says:") message)
-            person))
+  (if (get-visibility person)
+    (narrate! (append (list person "says:") message) person)
+    (think! person message)))
 
 (define (announce! message)
   (for-each (lambda (place)

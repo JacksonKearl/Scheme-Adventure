@@ -90,7 +90,7 @@
 
 (define (find-person name)
   (let ((person
-         (find-object-by-name name (people-here my-avatar))))
+         (find-object-by-name name (visible-people-here my-avatar))))
     (if (not person)
         (tell! (list "There is no one called" name "here")
                my-avatar))
@@ -208,8 +208,10 @@
     (create-mobile-thing 'sicp student-street)
     (create-mobile-thing 'engineering-book barker-library)
 
-    (list great-dome little-dome lobby-10
-          10-250 barker-library lobby-7
+    (create-mobile-thing 'cloak-of-invisibility barker-library)
+
+    (list barker-library great-dome little-dome lobby-10
+          10-250 lobby-7
           infinite bldg-26 cp32
           tunnel 32-123 32D 32G
           student-street bldg-54 the-dot

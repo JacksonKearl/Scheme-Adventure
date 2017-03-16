@@ -134,8 +134,19 @@
 (define (people-in-place place)
   (filter person? (get-things place)))
 
+(define (visible-people-in-place place)
+  (filter get-visibility (filter person? (get-things place))))
+
 (define (things-in-place place)
   (remove person? (get-things place)))
+
+(define (visible-things-in-place place)
+  (if (pair? (filter (lambda (x) (not (get-visibility x))) (filter person? (get-things place))))
+    (filter
+      (lambda (x) (or (not thing?) (not (equal? (get-name x) 'cloak-of-invisibility))) )
+      (remove person? (get-things place)))
+    (remove person? (get-things place))))
+
 
 (define (all-things-in-place place)
   (append (things-in-place place)
@@ -228,6 +239,11 @@
 
 ;;; People
 
+(define person:visible
+  (make-property 'visible
+                 'predicate n:boolean?
+                 'default-value #t))
+
 (define person:health
   (make-property 'health
                  'predicate n:exact-integer?
@@ -239,7 +255,7 @@
                  'default-supplier (lambda () (make-bag 'name 'my-bag))))
 
 (define person?
-  (make-type 'person (list person:health person:bag)))
+  (make-type 'person (list person:health person:bag person:visible)))
 (set-predicate<=! person? mobile-thing?)
 
 (define get-health
@@ -247,6 +263,12 @@
 
 (define set-health!
   (property-setter person:health person? any-object?))
+
+(define get-visibility
+  (property-getter person:visible person?))
+
+(define set-visibility!
+  (property-setter person:visible person? any-object?))
 
 (define get-bag
   (property-getter person:bag person?))
@@ -265,12 +287,14 @@
   (lambda (super person)
     (super person)
     (walk-it-off! person)
-    (narrate! (list person "enters" (get-location person))
-              person)
+    (if (get-visibility person)
+      (narrate! (list person "enters" (get-location person))
+                person))
+
     (if (equal? 'mit-medical (get-name (get-location person)))
       (heal! (+ 5 (weighted-random '(1 2 3 2 1))) person))
-    (let ((people (people-here person)))
-      (if (n:pair? people)
+    (let ((people (visible-people-here person)))
+      (if (and (get-visibility person) (n:pair? people))
           (say! person (cons "Hi" people))))))
 
 (define (when-alive callback)
@@ -279,13 +303,21 @@
         (callback person))))
 
 (define (walk-it-off! person)
-  (heal! (weighted-random '(6 2 1)) person))
+  (if (get-visibility person)
+    (heal! (weighted-random '(6 2 1)) person)
+    (begin (say! person '("Ouch, I'm so invisible")) (suffer! (weighted-random '(0 2 3 5 7)) person))))
 
 (define (people-here person)
   (delv person (people-in-place (get-location person))))
 
+(define (visible-people-here person)
+  (delv person (visible-people-in-place (get-location person))))
+
 (define (things-here person)
   (things-in-place (get-location person)))
+
+(define (visible-things-here person)
+  (visible-things-in-place (get-location person)))
 
 (define (vistas-here person)
   (get-vistas (get-location person)))
@@ -297,7 +329,7 @@
   (get-networks (get-location person)))
 
 (define (peoples-things person)
-  (append-map get-things (people-here person)))
+  (append-map get-things (visible-people-here person)))
 
 (define (heal! points person)
   (guarantee n:exact-nonnegative-integer? points)
@@ -399,7 +431,7 @@
 
 (define (take-something! agent)
   (let ((thing
-         (random-choice (append (things-here agent)
+         (random-choice (append (visible-things-here agent)
                                 (peoples-things agent)))))
     (if thing
         (take-thing! thing agent))))
@@ -432,7 +464,7 @@
   (property-getter house-master:irritability house-master?))
 
 (define (irritate-students! master)
-  (let ((students (filter student? (people-here master))))
+  (let ((students (filter student? (visible-people-here master))))
     (if (flip-coin (get-irritability master))
         (if (n:pair? students)
             (begin
@@ -473,7 +505,7 @@
 
 (define (eat-people! troll)
   (if (flip-coin (get-hunger troll))
-      (let ((people (people-here troll)))
+      (let ((people (visible-people-here troll)))
         (if (n:pair? people)
             (let ((victim (random-choice people))
                   (bite   (weighted-random '(0 0 1 1 2 2 4 4 6 6 8 8 6 6))))
@@ -525,8 +557,8 @@
         (tell! (cons "Your bag contains:" my-things)
                avatar)))
   (let ((things
-         (append (things-here avatar)
-                 (people-here avatar))))
+         (append (visible-things-here avatar)
+                 (visible-people-here avatar))))
     (if (n:pair? things)
         (tell! (cons "You see here:" things)
                avatar)))
@@ -671,9 +703,10 @@
                           "to" to)
                     actor))
             ((eqv? person actor)
+             (if (get-visibility person?)
              (narrate! (list person "leaves via the"
                              (get-direction exit) "exit")
-                       from)
+                       from))
              (move-internal! person from to))
             (else
              (tell! (list "You can't force"
@@ -687,7 +720,15 @@
                (eqv? (get-to exit) to)))
         (get-exits from)))
 
+(define (manage-visibilty from to)
+  (if (bag? from)
+    (begin (set-visibility! (get-holder from) #t) (narrate! `(,(get-holder from) "suddenly appears out of nowhere") (get-holder from))))
+  (if (bag? to)
+    (begin (set-visibility! (get-holder to)   #f) (narrate! `(,(get-holder to)   "suddenly vanishes into thin air") (get-holder to)))))
+
 (define (move-internal! mobile-thing from to)
+  (if (equal? (get-name mobile-thing) 'cloak-of-invisibility)
+    (manage-visibilty from to))
   (leave-place! mobile-thing)
   (remove-thing! from mobile-thing)
   (set-location! mobile-thing to)

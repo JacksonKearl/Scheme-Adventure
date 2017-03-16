@@ -1,5 +1,9 @@
 (load "load")
 
 (start-adventure 'jackson)
-(hang-out 2)
-(whats-here)
+(take-thing 'cloak-of-invisibility)
+(go 'down)
+(go 'up)
+(go 'down)
+(go 'up)
+(go 'down)
