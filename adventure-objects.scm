@@ -98,8 +98,14 @@
                               (and (n:list? x) (every place x)))
                  'default-value '()))
 
+(define place:networks
+  (make-property 'exits
+                 'predicate (lambda (x)
+                              (and (n:list? x) (every place x)))
+                 'default-value '()))
+
 (define place?
-  (make-type 'place (list place:vistas place:exits)))
+  (make-type 'place (list place:vistas place:exits place:networks)))
 (set-predicate<=! place? container?)
 
 (define make-place
@@ -117,6 +123,9 @@
 (define add-exit!
   (property-adder place:exits place? exit?))
 
+(define get-networks
+  (property-getter place:networks place?))
+
 (define (find-exit-in-direction direction place)
   (find (lambda (exit)
           (eqv? (get-direction exit) direction))
@@ -136,12 +145,54 @@
   (append (filter mobile-thing? (things-in-place place))
           (append-map get-things (people-in-place place))))
 
+(define (announce-to-networks message place)
+  (for-each (lambda (network)
+              (send-message! `(,place
+                                    "sends a message over the"
+                                    ,(get-name network)
+                                    ":"
+                                    ,@(filter (lambda x #t) message))
+                              network))
+            (get-networks place)))
+
 (define-generic-procedure-handler send-message!
   (match-args message? place?)
   (lambda (message place)
     (for-each (lambda (person)
                 (send-message! message person))
               (people-in-place place))))
+
+;;; Networks
+
+(define network:endpoints
+  (make-property 'vistas
+                 'predicate (lambda (x)
+                              (and (n:list? x) (every network x)))
+                 'default-value '()))
+
+(define network?
+  (make-type 'network (list network:endpoints)))
+(set-predicate<=! network? container?)
+
+(define make-network
+  (type-instantiator network?))
+
+(define get-endpoints
+  (property-getter network:endpoints network?))
+
+(define add-endpoint!
+  (property-adder network:endpoints network? place?))
+
+(define add-network!
+  (property-adder place:networks place? network?))
+
+(define-generic-procedure-handler send-message!
+  (match-args message? network?)
+  (lambda (message network)
+    (for-each (lambda (endpoint)
+                (if (not (equal? (get-name endpoint) (get-name (car message))))
+                  (send-message! message endpoint)))
+              (get-endpoints network))))
 
 ;;; Mobile things
 
@@ -241,6 +292,9 @@
 
 (define (exits-here person)
   (get-exits (get-location person)))
+
+(define (networks-here person)
+  (get-networks (get-location person)))
 
 (define (peoples-things person)
   (append-map get-things (people-here person)))

@@ -300,6 +300,10 @@
   (std-generic-procedure 'send-message! 2))
 
 (define (narrate! message person-or-place)
+  (announce-to-networks message
+                 (if (person? person-or-place)
+                     (get-location person-or-place)
+                     person-or-place))
   (send-message! message
                  (if (person? person-or-place)
                      (get-location person-or-place)

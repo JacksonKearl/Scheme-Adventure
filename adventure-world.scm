@@ -144,7 +144,9 @@
         (bldg-54 (create-place 'green-building))
         (the-dot (create-place 'the-dot))
         (dorm-row (create-place 'dorm-row))
-        (E25 (create-place 'mit-medical)))
+        (E25 (create-place 'mit-medical))
+
+        (eather (create-network 'eather)))   ; palantir-based hacker communication network
 
     (can-go-both-ways lobby-10 'up 'down 10-250)
     (can-go-both-ways 10-250 'up 'down barker-library)
@@ -183,6 +185,18 @@
     (can-see-both-ways lobby-10 infinite)
     (can-see-both-ways infinite bldg-26)
     (can-see-both-ways lobby-10 lobby-7)
+
+    ; Add networking
+    (connect-to-network great-dome eather)
+    (connect-to-network little-dome eather)
+    (connect-to-network tunnel eather)
+    (connect-to-network 32G eather)
+
+    ; dummy objects
+    (create-thing 'palantir great-dome)
+    (create-thing 'palantir little-dome)
+    (create-thing 'palantir tunnel)
+    (create-thing 'palantir 32G)
 
     ; Create some things
     (create-thing 'blackboard 10-250)
@@ -241,6 +255,9 @@
 (define (create-place name)
   (make-place 'name name))
 
+(define (create-network name)
+  (make-network 'name name))
+
 (define (create-exit from direction to)
   (make-exit 'name 'exit
              'from from
@@ -282,3 +299,7 @@
 (define (can-see-both-ways a b)
   (can-see a b)
   (can-see b a))
+
+(define (connect-to-network object network)
+  (add-network! object network)
+  (add-endpoint! network object))

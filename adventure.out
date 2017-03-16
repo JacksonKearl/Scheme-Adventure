@@ -45,3 +45,48 @@ You have 15 health
 You see here: course-6-frosh
 You can exit: skew west
 ;Unspecified return value
+
+
+Part 3:
+
+1 ]=> (start-adventure 'jackson)
+
+You are in student-street
+You have 13 health
+You see here: sicp ben-bitdiddle registrar
+You can exit: skew up in down west
+;Unspecified return value
+
+1 ]=> (go 'up)
+
+jackson leaves via the up exit
+jackson enters gates-tower
+jackson says: Hi grendel
+You are in gates-tower
+You have 13 health
+You see here: palantir grendel
+You can see: dreyfoos-tower
+You can exit: east down
+registrar enters gates-tower
+registrar says: Hi jackson grendel
+grendel leaves via the east exit
+;Unspecified return value
+
+1 ]=> (hang-out 6)
+
+registrar leaves via the east exit
+A day passes...
+lab-supplies sends a message over the eather : grendel enters lab-supplies
+lab-supplies sends a message over the eather : grendel's belly rumbles
+A day passes...
+lab-supplies sends a message over the eather : grendel's belly rumbles
+great-dome sends a message over the eather : alyssa-hacker enters great-dome
+great-dome sends a message over the eather : alyssa-hacker says: Hi course-6-frosh
+A day passes...
+lab-supplies sends a message over the eather : grendel leaves via the up exit
+A day passes...
+A day passes...
+An earth-shattering, soul-piercing scream is heard...
+A day passes...
+jackson says: That was relaxing.
+;Unspecified return value
