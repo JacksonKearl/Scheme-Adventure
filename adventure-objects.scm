@@ -4,8 +4,14 @@
   (make-property 'location
                  'predicate (lambda (x) (container? x))))
 
+(define thing:networks
+  (make-property 'networks
+                 'predicate (lambda (x) (is-list-of networks x))
+                 'default-value '()))
+
 (define thing?
-  (make-type 'thing (list thing:location)))
+  (make-type 'thing (list thing:location thing:networks)))
+
 (set-predicate<=! thing? object?)
 
 (define make-thing
@@ -13,6 +19,9 @@
 
 (define get-location
   (property-getter thing:location thing?))
+
+(define get-networks
+  (property-getter thing:networks thing?))
 
 (define-generic-procedure-handler set-up! (match-args thing?)
   (lambda (super thing)
@@ -99,10 +108,13 @@
                  'default-value '()))
 
 (define place:networks
-  (make-property 'exits
-                 'predicate (lambda (x)
-                              (and (n:list? x) (every place x)))
-                 'default-value '()))
+ (make-property 'networks
+                'predicate (lambda (x) (is-list-of networks x))
+                'default-value '()))
+
+(define get-place-networks
+  (property-getter place:networks thing?))
+
 
 (define place?
   (make-type 'place (list place:vistas place:exits place:networks)))
@@ -122,9 +134,6 @@
 
 (define add-exit!
   (property-adder place:exits place? exit?))
-
-(define get-networks
-  (property-getter place:networks place?))
 
 (define (find-exit-in-direction direction place)
   (find (lambda (exit)
@@ -156,15 +165,15 @@
   (append (filter mobile-thing? (things-in-place place))
           (append-map get-things (people-in-place place))))
 
-(define (announce-to-networks message place)
-  (for-each (lambda (network)
-              (send-message! `(,place
-                                    "sends a message over the"
-                                    ,(get-name network)
-                                    ":"
-                                    ,@(filter (lambda x #t) message))
-                              network))
-            (get-networks place)))
+;(define (announce-to-networks message place)
+;  (for-each (lambda (network)
+;              (send-message! `(,place
+;                                    "sends a message over the"
+;                                    ,(get-name network)
+;                                    ":"
+;                                    ,@(filter (lambda x #t) message))
+;                              network))
+;            (get-networks place)))
 
 (define-generic-procedure-handler send-message!
   (match-args message? place?)
@@ -173,38 +182,70 @@
                 (send-message! message person))
               (people-in-place place))))
 
-;;; Networks
+;;; Broadcast Networks
+;
+;(define network:endpoints
+;  (make-property 'endpoints
+;                 'predicate (lambda (x)
+;                              (and (n:list? x) (every network x)))
+;                 'default-value '()))
+;
+;(define network?
+;  (make-type 'network (list network:endpoints)))
+;(set-predicate<=! network? container?)
+;
+;(define make-network
+;  (type-instantiator network?))
+;
+;(define get-endpoints
+;  (property-getter network:endpoints network?))
+;
+;(define add-endpoint!
+;  (property-adder network:endpoints network? thing?))
+;
+;(define add-network!
+;  (property-adder thing:networks thing? network?))
+;
+;(define add-network!
+;  (property-adder place:networks place? network?))
+;
+;(define-generic-procedure-handler send-message!
+;  (match-args message? network?)
+;  (lambda (message network)
+;    (for-each (lambda (endpoint)
+;                (if (not (equal? (get-name endpoint) (get-name (car message))))
+;                  (send-message! message endpoint)))
+;              (get-endpoints network))))
+;
+;
 
-(define network:endpoints
-  (make-property 'vistas
+;;; p2p Networks
+
+(define p2p-network:endpoints
+  (make-property 'endpoints
                  'predicate (lambda (x)
-                              (and (n:list? x) (every network x)))
+                              (and (n:list? x) (every p2p-network x)))
                  'default-value '()))
 
-(define network?
-  (make-type 'network (list network:endpoints)))
-(set-predicate<=! network? container?)
+(define p2p-network?
+  (make-type 'p2p-network (list p2p-network:endpoints)))
+(set-predicate<=! p2p-network? container?)
 
-(define make-network
-  (type-instantiator network?))
+(define make-p2p-network
+  (type-instantiator p2p-network?))
 
-(define get-endpoints
-  (property-getter network:endpoints network?))
+(define get-endpoints!
+  (property-getter p2p-network:endpoints p2p-network?))
 
 (define add-endpoint!
-  (property-adder network:endpoints network? place?))
+  (property-adder p2p-network:endpoints p2p-network? object?))
+
+(define add-network
+  (property-adder thing:networks thing? p2p-network?))
 
 (define add-network!
-  (property-adder place:networks place? network?))
-
-(define-generic-procedure-handler send-message!
-  (match-args message? network?)
-  (lambda (message network)
-    (for-each (lambda (endpoint)
-                (if (not (equal? (get-name endpoint) (get-name (car message))))
-                  (send-message! message endpoint)))
-              (get-endpoints network))))
-
+  (property-adder place:networks place? p2p-network?))
+
 ;;; Mobile things
 
 (define mobile-thing:origin
@@ -236,6 +277,12 @@
 
 (define-generic-procedure-default-handler leave-place!
   (lambda (mobile-thing) #f))
+
+(define-generic-procedure-handler send-message!
+  (match-args message? mobile-thing?)
+  (lambda (message receiver)
+    (if (bag? (get-location receiver))
+      (send-message! message (get-holder (get-location receiver))))))
 
 ;;; People
 
@@ -325,8 +372,8 @@
 (define (exits-here person)
   (get-exits (get-location person)))
 
-(define (networks-here person)
-  (get-networks (get-location person)))
+;(define (networks-here person)
+;  (get-networks (get-location person)))
 
 (define (peoples-things person)
   (append-map get-things (visible-people-here person)))
@@ -437,7 +484,13 @@
         (take-thing! thing agent))))
 
 (define-clock-handler autonomous-agent? move-and-take-stuff!)
-
+
+;(define-generic-procedure-handler send-message!
+;  (match-args message? person?)
+;  (lambda (message person)
+;    (shout! person (list "I just" message))
+;    ))
+
 ;;; Students
 
 (define student?
@@ -703,7 +756,7 @@
                           "to" to)
                     actor))
             ((eqv? person actor)
-             (if (get-visibility person?)
+             (if (get-visibility person)
              (narrate! (list person "leaves via the"
                              (get-direction exit) "exit")
                        from))

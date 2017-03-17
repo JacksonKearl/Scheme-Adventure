@@ -300,10 +300,10 @@
   (std-generic-procedure 'send-message! 2))
 
 (define (narrate! message person-or-place)
-  (announce-to-networks message
-                 (if (person? person-or-place)
-                     (get-location person-or-place)
-                     person-or-place))
+  ;(announce-to-networks message
+  ;               (if (person? person-or-place)
+  ;                   (get-location person-or-place)
+  ;                   person-or-place))
   (send-message! message
                  (if (person? person-or-place)
                      (get-location person-or-place)
@@ -332,6 +332,15 @@
             (get-all-places))
   (if debug-output
       (send-message! message debug-output)))
+
+;(define (shout! person message)
+;(pp person)
+;(pp message))
+  ;(for-each (lambda (place)
+  ;            (send-message! (append (list person "says:") message) place))
+  ;          (get-all-places))
+  ;(if debug-output
+  ;    (send-message! (append (list person "says:") message) debug-output)))
 
 (define debug-output #f)
 

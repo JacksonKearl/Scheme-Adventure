@@ -1,3 +1,8 @@
+Part 0:
+Using the cached version, we can reduce the calls to fib to 75, which is ceritainly
+a big increase as opposed to the tens of thousands from before.
+
+
 Part 1:
 
 1 ]=> (start-adventure 'jackson)
@@ -177,4 +182,35 @@ You are in lobby-10
 You have 4 health
 You can see: lobby-7 infinite-corridor great-court
 You can exit: east south west up
+;Unspecified return value
+
+Part 4:
+1 ]=> (start-adventure 'jackson)
+You are in barker-library
+You have 10 health
+You see here: cloak-of-invisibility engineering-book nokia2 nokia
+You can exit: up down
+;Unspecified return value
+
+1 ]=> (take-thing 'nokia)
+jackson picks up nokia
+;Unspecified return value
+
+
+1 ]=> (take-thing 'nokia2)
+jackson picks up nokia2
+;Unspecified return value
+
+1 ]=> (hang-out 1)
+A day passes...
+jackson says: That was relaxing.
+;Unspecified return value
+
+1 ]=> (message 'nokia 'iphone7 "test")
+I just sent a message to iphone7
+;Unspecified return value
+
+1 ]=> (message 'nokia 'nokia2 "Texting myself rn... so social! 😀")
+Recieved a verizon message from nokia : Texting myself rn... so social! 😀
+I just sent a message to nokia2
 ;Unspecified return value
